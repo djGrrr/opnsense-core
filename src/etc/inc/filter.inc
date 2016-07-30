@@ -564,6 +564,84 @@ function filter_configure_sync()
     return 0;
 }
 
+
+function filter_get_if_from_ifcfg($ifcfg, $aliases = true, $ipv4 = true, $ipv6 = true, $to_from = false, $parent = false, $enclose = false) {
+    static $friendly_names = [];
+    static $friendly_descrs = [];
+    static $parent_ifs = [];
+
+    $ints = [];
+    $if = $ifcfg['if'];
+
+    if (!isset($friendly_names[$if])) {
+        $friendly_name = convert_real_interface_to_friendly_interface_name($if);
+        $friendly_names[$if] = $friendly_name ? $friendly_name : false;
+    }
+
+    $friendly_name = $friendly_names[$if];
+
+    if ($friendly_name && !isset($friendly_descrs[$friendly_name])) {
+        $friendly_descr = convert_friendly_interface_to_friendly_descr($friendly_name);
+        $friendly_descrs[$friendly_name] = $friendly_descr ? $friendly_descr : false;
+    }
+
+    $friendly_descr = $friendly_descrs[$friendly_name];
+
+    if ($aliases && !empty($ifcfg['descr'])) {
+        $int4 = '$'.$ifcfg['descr'];
+    } elseif ($aliases && $friendly_descr) {
+        $int4 = '$'.$friendly_descr;
+    } else {
+        $int4 = $if;
+    }
+
+    if ($ipv4)
+        $ints[] = $int4;
+
+    if ($ipv6) {
+        if (isset($ifcfg['type6']) && ($ifcfg['type6'] == '6rd' || $ifcfg['type6'] == '6to4')) {
+            if ($friendly_name) {
+                $ints[] = $friendly_name.'_stf';
+            }
+        }
+        elseif (!$ipv4)
+            $ints[] = $int4;
+    }
+
+    if ($parent) {
+        if (!isset($parent_ifs[$if])) {
+            $parent_ifs[$if] = get_parent_interface($if);
+        }
+
+        $parents = $parent_ifs[$if];
+        foreach ($parents as $parent_if) {
+            if ($parent_if != $if) {
+                $ints[] = $parent_if;
+            }
+        }
+    }
+
+    $interface = implode(' ', $ints);
+    if ($to_from)
+        $interface = filter_iflist_tofrom($interface, false);
+
+    if ($enclose)
+        $interface = '{ '.$interface.' }';
+
+    return $interface;
+}
+
+function filter_iflist_tofrom($if_list, $enclose = false) {
+    $if_list = trim($if_list);
+    $ifs = preg_split('/ +/', $if_list);
+
+    $ifs = '( '.implode(') (', $ifs).' )';
+    if ($enclose)
+        $ifs = '{ '.$ifs.' }';
+
+    return $ifs;
+}
+
 function filter_generate_scrubing(&$FilterIflist)
 {
     global $config;
