@@ -577,11 +577,12 @@ function filter_generate_scrubing(&$FilterIflist)
                 $scrub_rule_out = "scrub on ";
                 $interfaces = array();
                 foreach (explode(',', $scrub_rule['interface']) as $interface) {
-                    if (!empty($FilterIflist[$interface]['if'])) {
-                        $interfaces[] = $FilterIflist[$interface]['if'];
+                    $ifcfg = !empty($FilterIflist[$interface]) ? $FilterIflist[$interface] : NULL;
+                    if (!empty($ifcfg['if'])) {
+                        $interfaces[] = !empty($ifcfg['descr']) ? '$'.$ifcfg['descr'] : $ifcfg['if'];
                     }
                 }
-                $scrub_rule_out .= count($interfaces) > 1 ? "{ ". implode(' ', $interfaces) . " } " : $interfaces[0];
+                $scrub_rule_out .= '{ '.implode(' ', $interfaces).' } ';
                 $scrub_rule_out .= $scrub_rule['proto'] != 'any' ? " proto " . $scrub_rule['proto'] : "";
                 $scrub_rule_out .= " from ";
                 if (is_alias($scrub_rule['src'])) {
@@ -630,7 +631,7 @@ function filter_generate_scrubing(&$FilterIflist)
                 }
                 $scrubnodf = !empty($config['system']['scrubnodf']) ? "no-df" : "";
                 $scrubrnid = !empty($config['system']['scrubrnid']) ? "random-id" : "";
-                $scrubrules .= "scrub on \${$scrubcfg['descr']} all {$scrubnodf} {$scrubrnid} {$mssclamp}\n";
+                $scrubrules .= 'scrub on { $'.$scrubcfg['descr'].' } all '.$scrubnodf.' '.$scrubrnid.' '.$mssclamp."\n";
             }
         }
     }
