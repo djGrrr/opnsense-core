@@ -717,26 +717,25 @@ function filter_generate_aliases(&$FilterIflist, &$after_filter_configure_run)
 {
     global $config;
 
-    $aliases = "#System aliases\n";
-    $aliases .= "loopback = \"{ lo0 }\"\n";
+    $aliases = '#System aliases'."\n";
+    $aliases .= 'loopback = "lo0"'."\n";
 
     foreach ($FilterIflist as $if => $ifcfg) {
         if (!empty($ifcfg['descr']) && !empty($ifcfg['if'])) {
-            if (isset($ifcfg['type6']) && $ifcfg['type6'] == '6rd') {
-                $aliases .= "{$ifcfg['descr']} = \"{ {$ifcfg['if']} {$if}_stf";
-            } elseif (isset($ifcfg['type6']) && $ifcfg['type6'] == '6to4') {
-                $aliases .= "{$ifcfg['descr']} = \"{ {$ifcfg['if']} {$if}_stf";
+            if (isset($ifcfg['type6']) && ($ifcfg['type6'] == '6rd' || $ifcfg['type6'] == '6to4')) {
+                $aliases .= $ifcfg['descr'].' = "'.$ifcfg['if'].' '.$if.'_stf';
             } else {
-                $aliases .= "{$ifcfg['descr']} = \"{ {$ifcfg['if']}";
                 if (isset($ifcfg['type']) && $ifcfg['type'] == 'pptp') {
+                $aliases .= $ifcfg['descr'].' = "'.$ifcfg['if'];
+
                     foreach (get_parent_interface($ifcfg['if']) as $parent_if) {
                         if ($parent_if != $ifcfg['if']) {
-                            $aliases .= " {$parent_if}";
+                            $aliases .= ' '.$parent_if;
                         }
                     }
                 }
             }
-            $aliases .= " }\"\n";
+            $aliases .= '"'."\n";
         }
     }
 
