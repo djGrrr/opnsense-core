@@ -1,5 +1,7 @@
 <?php
 
+use OPNsense\Core\Filtering;
+
 /*
     Copyright (C) 2004-2007 Scott Ullrich
     Copyright (C) 2005 Bill Marquette
@@ -367,6 +369,7 @@ function filter_configure_sync()
 
     filter_pflog_start();
     update_filter_reload_status(gettext("Initializing"), true);
+    Filtering::init($FilterIflist);
 
     /* Get interface list to work with. */
     if (file_exists("/var/run/booting")) {
@@ -752,6 +755,9 @@ function filter_generate_aliases(&$FilterIflist, &$after_filter_configure_run)
             $aliases .= " }\"\n";
         }
     }
+
+    $aliases .= "\n".'# Interface aliases'."\n";
+    $aliases .= Filtering::setupInterfaceAliases();
 
     $aliases .= "\n# SSH Lockout Table\n";
     $aliases .= "table <sshlockout> persist\n";
